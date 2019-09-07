@@ -1,9 +1,30 @@
 from django.test import TestCase
 from game_api.models import Game
 
+
+
 from django.core.exceptions import ValidationError
 
 class GameModelTests( TestCase ):
+
+    def setUp( self ):
+        self.expected_game_data = {
+        'guesses_allowed': 5,
+        'guesses_taken': 3,
+        'letters_guessed': ['A'],
+        'guessed_word_state': ['', 'A'],
+        'is_game_over': False,
+        'id': None
+    }
+
+        self.mock_game = Game(
+                word = "TESTWORD",
+                guesses_allowed = self.expected_game_data['guesses_allowed'],
+                guesses_taken = self.expected_game_data['guesses_taken'],
+                letters_guessed = self.expected_game_data['letters_guessed'],
+                guessed_word_state = self.expected_game_data['guessed_word_state'],
+                is_game_over = self.expected_game_data['is_game_over']
+            )
 
     ### word field
     def test_init_should_assign_given_word(self):
@@ -52,7 +73,7 @@ class GameModelTests( TestCase ):
         )
 
         game.handleGuess('X')
-        self.assertEquals( expectedGuessesTaken, game.guesses_taken )
+        self.assertEquals( expectedGuessesTaken + 1, game.guesses_taken )
     
 
     ### guessed_word_state field
@@ -159,14 +180,41 @@ class GameModelTests( TestCase ):
     # HINT: considering adding a fixture or other widely scoped variables if you feel ]hat will
     #  make this easier
 
+    #Test to insure game is not over as long as there are guesses left
     def test_is_game_over_is_false_if_guesses_left( self ):
-        pass
+        expectedGameState = False
+        self.mock_game.guessed_word_state = ['','','S','','W','O','R','']
+        self.mock_game.letters_guessed = ['S', 'A', 'W', 'O', 'R','C']
+        #Insert guess 'Z' that is not in the word.  This will increment guesses_taken but still be less than guesses_allowed
+        self.mock_game.handleGuess('Z')
+        self.assertEquals( expectedGameState, self.mock_game.is_game_over )    
+        #print("Guesses taken... " + str(self.mock_game.guesses_taken))
 
     def test_is_game_over_is_false_if_not_all_letters_guessed( self ):
-        pass
+        expectedGameState = False
+        self.mock_game.guessed_word_state = ['','E','S','','W','O','R','']  
+        self.mock_game.letters_guessed = ['S', 'A', 'W', 'O', 'R','C','E']     
+        #Insert guess 'T'.  Letter D is still missing from TESTWORD
+        self.mock_game.handleGuess('T')
+        self.assertEquals( expectedGameState, self.mock_game.is_game_over ) 
+        #print("testword1 is.... " + ''.join(self.mock_game.guessed_word_state))     
 
     def test_is_game_over_is_true_if_no_guesses_left( self ):
-        pass
+        expectedGameState = True
+        self.mock_game.guessed_word_state = ['','E','S','','W','O','R','']  
+        self.mock_game.letters_guessed = ['S', 'A', 'W', 'O', 'R','C','E'] 
+        self.mock_game.guesses_taken = 4;       
+        #Insert guess 'Z'.  This will increment guesses_taken to guesses_allowed and set is_game_over to True
+        self.mock_game.handleGuess('Z')
+        self.assertEquals( expectedGameState, self.mock_game.is_game_over )
+        #print("testword2 is.... " + ''.join(self.mock_game.guessed_word_state))
 
     def test_is_game_over_is_true_if_all_letters_guessed( self ):
-        pass
+        expectedGameState = True
+        self.mock_game.guessed_word_state = ['','E','S','','W','O','R','D']  
+        self.mock_game.letters_guessed = ['S', 'A', 'W', 'O', 'R','C','D','E']
+        self.mock_game.guesses_taken = 4         
+        #Insert guess 'T'.  This will fill the remaining letters of TESTWORD and set is_game_over to True
+        self.mock_game.handleGuess('T')
+        self.assertEquals( expectedGameState, self.mock_game.is_game_over )
+        #print("testword3 is.... " + ''.join(self.mock_game.guessed_word_state))
