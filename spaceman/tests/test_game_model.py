@@ -159,14 +159,59 @@ class GameModelTests( TestCase ):
     # HINT: considering adding a fixture or other widely scoped variables if you feel ]hat will
     #  make this easier
 
+    #Test to insure game is not over as long as there are guesses left
     def test_is_game_over_is_false_if_guesses_left( self ):
-        pass
+        initialGuessedWordState = ['','','S','','W','O','R','']
+        expectedGameState = False
+        game = Game( 
+            word= 'TESTWORD',
+            guessed_word_state= initialGuessedWordState,
+            letters_guessed = ['S', 'A', 'W', 'O', 'R','C'],
+            guesses_allowed= 5, 
+            guesses_taken= 2
+        )
+        #Insert guess 'Z' that is not in the word.  This will increment guesses_taken but still be less than guesses_allowed
+        game.handleGuess('Z')
+        self.assertEquals( expectedGameState, game.is_game_over )    
 
     def test_is_game_over_is_false_if_not_all_letters_guessed( self ):
-        pass
+        initialGuessedWordState = ['','E','S','','W','O','R','']
+        expectedGameState = False
+        game = Game( 
+            word= 'TESTWORD',
+            guessed_word_state= initialGuessedWordState,
+            letters_guessed = ['S', 'A', 'W', 'O', 'R','C','E'],
+            guesses_allowed= 5, 
+            guesses_taken= 2
+        )
+        #Insert guess 'T'.  Letter D is still missing from TESTWORD
+        game.handleGuess('T')
+        self.assertEquals( expectedGameState, game.is_game_over )      
 
     def test_is_game_over_is_true_if_no_guesses_left( self ):
-        pass
+        initialGuessedWordState = ['','E','S','','W','O','R','']
+        expectedGameState = True
+        game = Game( 
+            word= 'TESTWORD',
+            guessed_word_state= initialGuessedWordState,
+            letters_guessed = ['S', 'A', 'W', 'O', 'R','C','E'],
+            guesses_allowed= 5, 
+            guesses_taken= 4
+        )
+        #Insert guess 'Z'.  This will increment guesses_taken to guesses_allowed and set is_game_over to True
+        game.handleGuess('Z')
+        self.assertEquals( expectedGameState, game.is_game_over )
 
     def test_is_game_over_is_true_if_all_letters_guessed( self ):
-        pass
+        initialGuessedWordState = ['','E','S','','W','O','R','D']
+        expectedGameState = True
+        game = Game( 
+            word= 'TESTWORD',
+            guessed_word_state= initialGuessedWordState,
+            letters_guessed = ['S', 'A', 'W', 'O', 'R','C','D','E'],
+            guesses_allowed= 5, 
+            guesses_taken= 4
+        )
+        #Insert guess 'T'.  This will fill the remaining letters of TESTWORD and set is_game_over to True
+        game.handleGuess('T')
+        self.assertEquals( expectedGameState, game.is_game_over )
